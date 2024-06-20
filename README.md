@@ -1,11 +1,11 @@
 # Network-Speed-Test
 
 Cerinte:
-1.Aplicatia poate fi rulata fie in modul server cu parametrul -s fie in modul client cu parametrul -c urmat de adresa ip a serverului.
-2.Permiterea setari portului pe care se doreste a se face conexiunea cu parametrul -p urmat de port.
-3.Daca se doreste modificarea timpului in care se trimite date, se poate folosi parametrul -t urmat de noul timp.
-4.In mod normal la fiecare secunda, un calcul este efectuat pentru a afisa bandwith-ul pentru in acea secunda. Daca se doreste modificarea acestui interval, se va folosi argumentul -i urmat de un numar de secunde pentru intervalele noi.
-5.Protocolul de transmitere a datelor poate fi modificat din TCP(default) in UDP cu parametrul -u.
+-[ ]Aplicatia poate fi rulata fie in modul server cu parametrul -s fie in modul client cu parametrul -c urmat de adresa ip a serverului.  
+-[ ]Permiterea setari portului pe care se doreste a se face conexiunea cu parametrul -p urmat de port.  
+-[ ]Daca se doreste modificarea timpului in care se trimite date, se poate folosi parametrul -t urmat de noul timp.  
+-[ ]In mod normal la fiecare secunda, un calcul este efectuat pentru a afisa bandwith-ul pentru in acea secunda. Daca se doreste modificarea acestui interval, se va folosi argumentul -i urmat de un numar de secunde pentru intervalele noi.  
+-[ ]Protocolul de transmitere a datelor poate fi modificat din TCP(default) in UDP cu parametrul -u.  
 
 17.06.2024 
 M-am documentat despre modul de functionare al iperf3:
