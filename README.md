@@ -16,3 +16,9 @@ Am finalizat conexiunea client server
 
 19.06.2024
 Am adaugat un script care permite rezolvarea unora dintre cerinte.
+
+20.06.2024
+In loc de un script care ruleaza fie executabilul serverului, fie cel al clientului, acum, atat implementarea pentru server cat si cea pentru client sunt in acelasi cpp.
+
+21.06.2024
+Adaugarea serverului si a clientului pentru UDP.
