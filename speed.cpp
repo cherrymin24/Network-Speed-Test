@@ -8,14 +8,19 @@
 #include <unistd.h>
 #include <chrono>
 #include <thread>
+#include <ctime>
+#include <bits/stdc++.h> 
+#include <unistd.h> 
 
 #define BUFFER_SIZE 1024
 
-void serverTCP(int port,int type);
-void clientTCP(int port, const char* server_ip, int time,int interval, int type);
+void serverTCP(int port, char* type);
+void clientTCP(int port, const char* server_ip, int time,int interval, char* type);
 
-void serverUDP(int port,int type);
-void clientUDP(int port, const char* server_ip, int time,int interval, int type);
+void serverUDP(int port, char* type);
+void clientUDP(int port, const char* server_ip, int time,int interval, char* type);
+
+unsigned long long convertType(char* type);
 
 int main(int argc,const char* argv[])
 {
@@ -23,7 +28,7 @@ int main(int argc,const char* argv[])
     int port=8000;
     int time=10;
     int interval=1;
-    int type=1;
+    char type[20] = "bytes";
     bool udp=0;
     const char* server_ip;
     int i=0;
@@ -64,16 +69,19 @@ int main(int argc,const char* argv[])
         else if(strcmp(argv[i],"-f")==0)
         {
             i++;
-            if(strcmp(argv[i],"B")==0)
-                type=8;
-            else if(strcmp(argv[i],"k")==0)
-                type=1000;
+            if(strcmp(argv[i],"k")==0)
+                strcpy(type,"kilobits");
             else if(strcmp(argv[i],"K")==0)
-                type=8000;
+                strcpy(type,"kilobytes");
             else if(strcmp(argv[i],"m")==0)
-                type=1000000;
+                strcpy(type,"megabits");
             else if(strcmp(argv[i],"-M")==0)
-                type=8000000;
+                strcpy(type,"megabytes");
+            else
+            {
+                std::cout<<"option not available";
+                return -1;
+            }
         }
         else
         {
@@ -101,14 +109,28 @@ int main(int argc,const char* argv[])
     return 0;
 }
 
-void serverTCP(int port, int type) 
+unsigned long long convertType(char* type)
+{
+    if(!strcmp(type,"bytes"))
+        return 1;
+    else if(!strcmp(type, "kilobits"))
+        return 1000;
+    else if(!strcmp(type, "kilobytes"))
+        return 1024;
+    else if(!strcmp(type, "megabits"))
+        return 1000000;
+    else if(!strcmp(type, "megabytes"))
+        return 1048576;
+    return 0;
+}
+
+void serverTCP(int port, char* type) 
 {
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
-    const char *welcome_msg = "Welcome to the server!";
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -120,6 +142,7 @@ void serverTCP(int port, int type)
         close(server_fd);
         exit(EXIT_FAILURE);
     }
+
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
@@ -144,14 +167,63 @@ void serverTCP(int port, int type)
         exit(EXIT_FAILURE);
     }
 
-    send(new_socket, welcome_msg, strlen(welcome_msg), 0);
-    std::cout << "Welcome message sent" << std::endl;
+    int time;
+    recv(new_socket, &time, sizeof(time), 0);
+    int interval;
+    recv(new_socket, &interval, sizeof(interval), 0);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto next_interval = start + std::chrono::seconds(interval);
+    unsigned long long total_received = 0;
+    unsigned long long total_sent = 0;
+    unsigned long long interval_sent = 0;
+    unsigned long long interval_received = 0;
+    int interval_start = 0;
+    int interval_end = 1;
+
+    while (true) 
+    {
+        unsigned long long bytes_received = read(new_socket, buffer, BUFFER_SIZE);
+        if (bytes_received < 0) {
+            perror("Failed to receive data");
+            break;
+        }
+        send(new_socket, &bytes_received , sizeof(bytes_received), 0);
+        interval_sent+=1024;
+        total_sent+=1024;
+        interval_received += bytes_received;
+        total_received += bytes_received;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        if (now >= next_interval) 
+        {
+            std::chrono::duration<double> interval_elapsed = now - (next_interval - std::chrono::seconds(1));
+            double bandwidth = (interval_received * 8.0) / interval_elapsed.count(); // in bits per second
+            std::cout << "Interval: [" << interval_start << "-" << interval_end << "], Received: " << interval_received 
+                      << " bytes, Bandwidth: " << bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            interval_received = 0;
+            interval_sent=0;
+            interval_start++;
+            interval_end++;
+            next_interval += std::chrono::seconds(1);
+        }
+
+        std::chrono::duration<double> total_elapsed = now - start;
+        if ((int)total_elapsed.count() >= time)
+        {
+            double total_bandwidth = (total_received * 8.0) / total_elapsed.count(); // in bits per second
+            std::cout << "\nTotal sent: " <<total_sent<< " bytes, Total received: " << total_received 
+                      << " bytes, Total Bandwidth: " << total_bandwidth / (1024 * 1024) << type << "/ second" << std::endl;
+            break;
+        }
+    }
 
     close(new_socket);
     close(server_fd);
 }
 
-void clientTCP(int port, const char* server_ip, int time, int interval, int type)
+
+void clientTCP(int port, const char* server_ip, int time, int interval, char* type)
 {
     int sock = 0;
     struct sockaddr_in serv_addr;
@@ -177,16 +249,68 @@ void clientTCP(int port, const char* server_ip, int time, int interval, int type
         return;
     }
 
-    int valread = read(sock, buffer, BUFFER_SIZE);
-    std::cout << "Received: " << buffer << std::endl;
+    send(sock, &time, sizeof(time), 0);
+    send(sock, &interval, sizeof(interval), 0);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto next_interval = start + std::chrono::seconds(interval);
+    unsigned long long total_sent = 0;
+    unsigned long long interval_sent = 0;
+    unsigned long long interval_received = 0;
+    unsigned long long total_received = 0;
+    int interval_start = 0;
+    int interval_end = 1;
+
+    while (true) 
+    {
+        unsigned long long bytes_sent = send(sock, buffer, BUFFER_SIZE, 0);
+        if (bytes_sent <= 0) {
+            perror("Failed to send data");
+            break;
+        }
+        unsigned long long bytes_received = recv(sock, buffer, BUFFER_SIZE, 0);
+        if (bytes_received <= 0) {
+            perror("Failed to receive data");
+            break;
+        }
+        interval_received+=bytes_received;
+        total_received+=bytes_received;
+        interval_sent += bytes_sent;
+        total_sent += bytes_sent;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        if (now >= next_interval) 
+        {
+            std::chrono::duration<double> interval_elapsed = now - (next_interval - std::chrono::seconds(1));
+            double bandwidth = (interval_received * 8.0) / interval_elapsed.count(); // in bits per second
+            std::cout << "Interval: [" << interval_start << "-" << interval_end << "], Sent: " << interval_sent 
+                      << "bytes, Received "<<interval_received<<" bytes, Bandwidth: " << bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            interval_sent = 0;
+            interval_received = 0;
+            interval_start++;
+            interval_end++;
+            next_interval += std::chrono::seconds(1);
+        }
+
+        std::chrono::duration<double> total_elapsed = now - start;
+        if (total_elapsed.count() >= time)
+        {
+            double total_bandwidth = (total_received * 8.0) / total_elapsed.count(); // in bits per second
+            std::cout << "\nTotal sent: " << total_sent << " bytes, Total received: " << total_received 
+                      << " bytes, Total Bandwidth: " << total_bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            break;
+        }
+    }
 
     close(sock);
 }
 
-void serverUDP(int port, int type) {
+
+void serverUDP(int port, char* type) {
     int sockfd;
     char buffer[BUFFER_SIZE];
     struct sockaddr_in servaddr, cliaddr;
+    socklen_t addrlen = sizeof(cliaddr);
     const char *welcome_msg = "Welcome to the server!";
 
 
@@ -210,16 +334,61 @@ void serverUDP(int port, int type) {
 
     std::cout << "Server is listening on port " << port << std::endl;
 
-    sendto(sockfd, welcome_msg, strlen(welcome_msg), MSG_CONFIRM, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
-    std::cout << "Response sent to client." << std::endl;
+    int time;
+    recvfrom(sockfd, &time, sizeof(time), 0, (struct sockaddr *)&cliaddr, &addrlen);
+    int interval;
+    recvfrom(sockfd, &interval, sizeof(interval), 0, (struct sockaddr *)&cliaddr, &addrlen);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto next_interval = start + std::chrono::seconds(1);
+    unsigned long long total_received = 0;
+    int interval_received = 0;
+    int interval_start = 0;
+    int interval_end = 1;
+
+    while (true) 
+    {
+        int bytes_received = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&cliaddr, &addrlen);
+        if (bytes_received < 0) {
+            perror("Failed to receive data");
+            break;
+        }
+
+        interval_received += bytes_received;
+        total_received += bytes_received;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        if (now >= next_interval) 
+        {
+            std::chrono::duration<double> interval_elapsed = now - (next_interval - std::chrono::seconds(1));
+            double bandwidth = (interval_received * 8.0) / interval_elapsed.count(); // in bits per second
+            std::cout << "Interval: [" << interval_start << "-" << interval_end << "], Received: " << interval_received 
+                      << " bytes, Received: "<<interval_received << " bytes, Bandwidth: " << bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            interval_received = 0;
+            interval_start++;
+            interval_end++;
+            next_interval += std::chrono::seconds(1);
+        }
+
+        std::chrono::duration<double> total_elapsed = now - start;
+        if (total_elapsed.count() >= time)
+        {
+            double total_bandwidth = (total_received * 8.0) / total_elapsed.count(); // in bits per second
+            std::cout << "\nTotal sent: " << total_received << " bytes, Total Bandwidth: " 
+                      << total_bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            break;
+        }
+    }
+
 
     close(sockfd);
 }
 
-void clientUDP(int port, const char* server_ip, int time, int interval, int type) {
+void clientUDP(int port, const char* server_ip, int time, int interval, char* type) {
     int sockfd;
     char buffer[BUFFER_SIZE];
     struct sockaddr_in servaddr;
+    memset(buffer, 'a', sizeof(buffer));  // Fill buffer with dummy data
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Socket creation failed");
@@ -232,13 +401,59 @@ void clientUDP(int port, const char* server_ip, int time, int interval, int type
     servaddr.sin_port = htons(port);
     servaddr.sin_addr.s_addr = inet_addr(server_ip);
     
-    std::string hello = "Hello from client";
-    sendto(sockfd, hello.c_str(), hello.size(), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
-    std::cout << "Hello message sent." << std::endl;
 
-    int n = recvfrom(sockfd, (char *)buffer, BUFFER_SIZE, MSG_WAITALL, nullptr, nullptr);
-    buffer[n] = '\0';
-    std::cout << "Server: " << buffer << std::endl;
+    if (inet_pton(AF_INET, server_ip, &servaddr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        return;
+    }
 
-    close(sockfd);
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("Connection Failed");
+        return;
+    }   
+
+    sendto(sockfd, &time, sizeof(time), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+    sendto(sockfd, &interval, sizeof(interval), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+
+auto start = std::chrono::high_resolution_clock::now();
+    auto next_interval = start + std::chrono::seconds(1);
+    unsigned long long total_sent = 0;
+    int interval_sent = 0;
+    int interval_start = 0;
+    int interval_end = 1;
+
+    while (true) 
+    {
+        int bytes_sent = sendto(sockfd, buffer, BUFFER_SIZE, 0, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+        if (bytes_sent < 0) {
+            perror("Failed to send data");
+            break;
+        }
+
+        interval_sent += bytes_sent;
+        total_sent += bytes_sent;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        if (now >= next_interval) 
+        {
+            std::chrono::duration<double> interval_elapsed = now - (next_interval - std::chrono::seconds(1));
+            double bandwidth = (interval_sent * 8.0) / interval_elapsed.count(); // in bits per second
+            std::cout << "Interval: [" << interval_start << "-" << interval_end << "], Sent: " << interval_sent 
+                      << " bytes, Bandwidth: " << bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            interval_sent = 0;
+            interval_start++;
+            interval_end++;
+            next_interval += std::chrono::seconds(1);
+        }
+
+        std::chrono::duration<double> total_elapsed = now - start;
+        if (total_elapsed.count() >= time)
+        {
+            double total_bandwidth = (total_sent * 8.0) / total_elapsed.count(); // in bits per second
+            std::cout << "\nTotal: " << total_sent << " bytes, Total Bandwidth: " 
+                      << total_bandwidth / (1024 * 1024) << " Mbps" << std::endl;
+            break;
+        }
+    }
+
 }
