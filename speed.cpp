@@ -231,12 +231,12 @@ void serverTCP(int port, char* type)
         if ((int)total_elapsed.count() >= time)
         {
             double total_bandwidth = (total_received * 8.0) / total_elapsed.count();
-            std::cout << "\nTotal sent: " <<total_sent<< " bytes, Total received: " << total_received 
-                      << " bytes, ";
+            std::cout << "\nTotal sent: " <<total_sent/divType<<" "<< type <<", Total received: " << total_received/divType 
+                      << " " << type;
             if(total_bandwidth / (1000 * 1000) <= 1000)
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
             else 
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
             break;
         }
     }
@@ -327,14 +327,13 @@ void clientTCP(int port, const char* server_ip, int time, int interval, char* ty
         if (total_elapsed.count() >= time)
         {
             double total_bandwidth = (total_received * 8.0) / total_elapsed.count();
-            std::cout << "\nTotal sent: " <<total_sent<< " bytes, Total received: " << total_received 
-                      << " bytes, ";
+            std::cout << "\nTotal sent: " <<total_sent/divType<<" "<< type <<", Total received: " << total_received/divType 
+                      << " " << type;
             if(total_bandwidth / (1000 * 1000) <= 1000)
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
             else 
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
             break;
-        sleep(interval/100);
         }
     }
     close(sock);
@@ -427,12 +426,12 @@ void serverUDP(int port, char* type) {
         if ((int)total_elapsed.count() >= time)
         {
             double total_bandwidth = (total_received * 8.0) / total_elapsed.count();
-            std::cout << "\nTotal sent: " <<total_sent<< " bytes, Total received: " << total_received 
-                      << " bytes, ";
+            std::cout << "\nTotal sent: " <<total_sent/divType<<" "<< type <<", Total received: " << total_received/divType 
+                      << " " << type;
             if(total_bandwidth / (1000 * 1000) <= 1000)
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
             else 
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
             break;
         }
     }
@@ -526,12 +525,12 @@ void clientUDP(int port, const char* server_ip, int time, int interval, char* ty
         if (total_elapsed.count() >= time)
         {
             double total_bandwidth = (total_received * 8.0) / total_elapsed.count();
-            std::cout << "\nTotal sent: " <<total_sent<< " bytes, Total received: " << total_received 
-                      << " bytes, ";
+            std::cout << "\nTotal sent: " <<total_sent/divType<<" "<< type <<", Total received: " << total_received/divType 
+                      << " " << type;
             if(total_bandwidth / (1000 * 1000) <= 1000)
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000) << "Mbps" << std::endl;
             else 
-                std::cout<<"Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
+                std::cout<<", Total Bandwidth: " << total_bandwidth / (1000 * 1000 * 1000) << "Gbps" << std::endl;
             break;
         }
     }
