@@ -41,7 +41,7 @@ Afisarea bandwith-ului fie in Mbps fie in Gbps in functie de dimensiune si adaug
 -s deschidere in modul server  
 -c deschidere in modul client, urmat de adresa ip a serverului  
 -p permite setarea unui port  
--u folosirea UDP in loc de TCP(default)
+-u folosirea UDP in loc de TCP(default)  
 -t setarea timpului (default 10) in care se va face testul(valabil doar pentru client)  
 -i setarea unui interval de timp (default 1) la care se va afisa bandwith-ul pentru intervalul respectiv(valabil doar pentru client)  
 -f indica unitatea de masura a datelor in functie de parametrul ales(default bytes): k(kilobits), K(kilobytes), m(megabits), M(megabytes), g(gigabits), G(gigabytes)  
