@@ -7,6 +7,7 @@
 - [x] In mod normal la fiecare secunda, un calcul este efectuat pentru a afisa bandwith-ul pentru in acea secunda. Daca se doreste modificarea acestui interval, se va folosi argumentul -i urmat de un numar de secunde pentru intervalele noi.  
 - [x] Protocolul de transmitere a datelor poate fi modificat din TCP(default) in UDP cu parametrul -u.  
 
+## Progres
 ### 17.06.2024  
 M-am documentat despre modul de functionare al iperf3:
 https://iperf.fr/iperf-doc.php  
