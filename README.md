@@ -31,7 +31,7 @@ Trimitere de date intre client si server si calcularea bandwith-ului.
 Adaugarea optiunilor de setare a timpului si intervalului.  
 
 ### 27.06.2024  
-Adaugarea optiunilor pentru -f. Argumentul -f va fi urmat de una dintre urmatoarele optiuni k(kilobits), K(kilobytes), m(megabits), M(megabytes), g(gigabits), G(gigabytes). In functie optiunea aleasa, programul va afisa data transmise si primite in unitatea respectiva.  
+Adaugarea optiunilor pentru -f. Argumentul -f va fi urmat de una dintre urmatoarele optiuni k(kilobits), K(kilobytes), m(megabits), M(megabytes), g(gigabits), G(gigabytes). In functie optiunea aleasa, programul va afisa datele transmise si primite in unitatea respectiva.  
 
 ### 28.06.2024  
 Afisarea bandwith-ului fie in Mbps fie in Gbps in functie de dimensiune si adaugare timeout la serverul TCP.
